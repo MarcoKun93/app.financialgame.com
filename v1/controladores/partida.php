@@ -19,6 +19,7 @@ class partida {
     const NOMBRE_GANADOR = "nombreganador";
     const PUNTUACION_GANADOR = "puntuacionganador";
     const ID_USUARIO = "idUsuario";
+    const ID_SEMILLA = "idSemilla";
 
     const CODIGO_EXITO = 1;
     const ESTADO_EXITO = 1;
@@ -64,7 +65,7 @@ class partida {
                 return self::obtenerPartidasSubidas($idUsuario, $peticion[1]);
             }
         } else if ($peticion[0] == 'ranking') {
-            return self::obtenerPartidasSubidas($idUsuario);
+            return self::ranking();
         } else {
             throw new ExcepcionApi(self::ESTADO_URL_INCORRECTA, "Url mal formada", 400);
         }
@@ -72,9 +73,25 @@ class partida {
 
     public static function delete($peticion)
     {
+        $idUsuario = usuario::autorizar();
+
+        if (!empty($peticion[0])) {
+            if (self::eliminar($idUsuario, $peticion[0]) > 0) {
+                http_response_code(200);
+                return [
+                    "estado" => self::CODIGO_EXITO,
+                    "mensaje" => "Registro eliminado correctamente"
+                ];
+            } else {
+                throw new ExcepcionApi(self::ESTADO_NO_ENCONTRADO,
+                    "La partida que intentas acceder no existe", 404);
+            }
+        } else {
+            throw new ExcepcionApi(self::ESTADO_ERROR_PARAMETROS, "Falta id", 422);
+        }
     }
 
-    // POST
+    // POST, aprovechamos y si correcto, incrementamos el numero de partidas subidas por el usuario.
     private function subirPartida($idUsuario)
     {
         $cuerpo = file_get_contents('php://input');
@@ -86,6 +103,7 @@ class partida {
 
         switch ($resultado) {
             case self::ESTADO_CREACION_EXITOSA:
+                usuario::incrementarNumPartidasSubidas($idUsuario);
                 http_response_code(201);
                 return
                     [
@@ -108,6 +126,7 @@ class partida {
         $numjugadores = $datosPartida->numjugadores;
         $nombreganador = $datosPartida->nombreganador;
         $puntuacionganador = $datosPartida->puntuacionganador;
+        $idSemilla = $datosPartida->idSemilla;
 
         try {
             $pdo = ConexionBD::obtenerInstancia()->obtenerBD();
@@ -119,8 +138,9 @@ class partida {
                 self::NUM_JUGADORES . "," .
                 self::NOMBRE_GANADOR . "," .
                 self::PUNTUACION_GANADOR . "," .
-                self::ID_USUARIO . ")" .
-                " VALUES(?,?,?,?,?,?)";
+                self::ID_USUARIO . "," .
+                self::ID_SEMILLA . ")" .
+                " VALUES(?,?,?,?,?,?,?)";
 
             $sentencia = $pdo->prepare($comando);
 
@@ -130,6 +150,7 @@ class partida {
             $sentencia->bindParam(4, $nombreganador);
             $sentencia->bindParam(5, $puntuacionganador);
             $sentencia->bindParam(6, $idUsuario);
+            $sentencia->bindParam(7, $idSemilla);
 
             $resultado = $sentencia->execute();
 
@@ -185,10 +206,57 @@ class partida {
         }
     }
 
-    // GET
+    // GET. No es necesario que se le pase ningun parametro. En vez del nombre del jugador ganador, devuelve el nombre del usuario que subio la partida.
     private function ranking()
     {
+        try {
 
+            $comando = "SELECT " . self::ID_PARTIDA . ", " . self::FECHA . ", " . self::NUM_RONDAS . ", " . self::NUM_JUGADORES . ", b.nombre as nombreganador, " .
+                self::PUNTUACION_GANADOR . ", " . "a." . self::ID_USUARIO . " as idUsuario " . ", " . self::ID_SEMILLA .
+                " FROM " . self::NOMBRE_TABLA . " a, usuario b" .
+                " WHERE a." . self::ID_USUARIO . " = b.idUsuario" .
+                " ORDER BY " . self::PUNTUACION_GANADOR . " DESC" .
+                " LIMIT 20";
 
+            // Preparar sentencia
+            $sentencia = ConexionBD::obtenerInstancia()->obtenerBD()->prepare($comando);
+
+            // Ejecutar sentencia preparada
+            if ($sentencia->execute()) {
+                http_response_code(200);
+                return
+                    [
+                        "estado" => self::ESTADO_EXITO,
+                        "datos" => $sentencia->fetchAll(PDO::FETCH_ASSOC)
+                    ];
+            } else
+                throw new ExcepcionApi(self::ESTADO_ERROR, "Se ha producido un error");
+
+        } catch (PDOException $e) {
+            throw new ExcepcionApi(self::ESTADO_ERROR_BD, $e->getMessage());
+        }
+    }
+
+    private function eliminar($idUsuario, $idPartida)
+    {
+        try {
+            // Sentencia DELETE
+            $comando = "DELETE FROM " . self::NOMBRE_TABLA .
+                " WHERE " . self::ID_PARTIDA . "=? AND " .
+                self::ID_USUARIO . "=?";
+
+            // Preparar la sentencia
+            $sentencia = ConexionBD::obtenerInstancia()->obtenerBD()->prepare($comando);
+
+            $sentencia->bindParam(1, $idPartida);
+            $sentencia->bindParam(2, $idUsuario);
+
+            $sentencia->execute();
+
+            return $sentencia->rowCount();
+
+        } catch (PDOException $e) {
+            throw new ExcepcionApi(self::ESTADO_ERROR_BD, $e->getMessage());
+        }
     }
 }

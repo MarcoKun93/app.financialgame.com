@@ -4,6 +4,8 @@ require 'vistas/VistaJson.php';
 require 'utilidades/ExcepcionApi.php';
 require 'controladores/usuario.php';
 require 'controladores/partida.php';
+require 'controladores/semilla.php';
+require 'controladores/logro.php';
 
 // Constantes de estado
 const ESTADO_URL_INCORRECTA = 2;
@@ -34,7 +36,7 @@ else
 
 // Obtener recurso
 $recurso = array_shift($peticion);
-$recursos_existentes = array('partida', 'usuario');
+$recursos_existentes = array('partida', 'usuario', 'semilla', 'logro');
 
 // Comprobar si existe el recurso
 if (!in_array($recurso, $recursos_existentes)) {
@@ -49,8 +51,12 @@ switch ($metodo) {
         // Procesar método get, antes comprobamos el recurso
         if($recurso == 'usuario') {
 
-        } else {
+        } else if($recurso == 'partida') {
             $vista->imprimir(partida::get($peticion));
+        } else if($recurso == 'logro') {
+            $vista->imprimir(logro::get($peticion));
+        } else {
+            $vista->imprimir(semilla::get($peticion));
         }
         break;
 
@@ -58,8 +64,10 @@ switch ($metodo) {
         // Procesar método post, antes comprobamos el recurso
         if($recurso == 'usuario') {
             $vista->imprimir(usuario::post($peticion));
-        } else {
+        } else if($recurso == 'partida'){
             $vista->imprimir(partida::post($peticion));
+        } else {
+            $vista->imprimir(logro::post($peticion));
         }
         break;
 
@@ -69,6 +77,9 @@ switch ($metodo) {
 
     case 'delete':
         // Procesar método delete
+        if($recurso == 'partida') {
+            $vista->imprimir(partida::delete($peticion));
+        }
         break;
 
     default:
