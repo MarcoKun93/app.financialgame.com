@@ -6,6 +6,9 @@ require 'controladores/usuario.php';
 require 'controladores/partida.php';
 require 'controladores/semilla.php';
 require 'controladores/logro.php';
+require 'controladores/partidaOnline.php';
+require 'controladores/jugadorOnline.php';
+require 'controladores/partidaonlinejugadoresonline.php';
 
 // Constantes de estado
 const ESTADO_URL_INCORRECTA = 2;
@@ -36,7 +39,7 @@ else
 
 // Obtener recurso
 $recurso = array_shift($peticion);
-$recursos_existentes = array('partida', 'usuario', 'semilla', 'logro');
+$recursos_existentes = array('partida', 'usuario', 'semilla', 'logro', 'partidaonline', 'jugadoronline');
 
 // Comprobar si existe el recurso
 if (!in_array($recurso, $recursos_existentes)) {
@@ -55,6 +58,10 @@ switch ($metodo) {
             $vista->imprimir(partida::get($peticion));
         } else if($recurso == 'logro') {
             $vista->imprimir(logro::get($peticion));
+        } else if($recurso == 'partidaonline') {
+            $vista->imprimir(partidaOnline::get($peticion));
+        } else if($recurso == 'jugadoronline'){
+            $vista->imprimir(jugadorOnline::get($peticion));
         } else {
             $vista->imprimir(semilla::get($peticion));
         }
@@ -66,6 +73,10 @@ switch ($metodo) {
             $vista->imprimir(usuario::post($peticion));
         } else if($recurso == 'partida'){
             $vista->imprimir(partida::post($peticion));
+        } else if($recurso == 'partidaonline'){
+            $vista->imprimir(partidaOnline::post($peticion));
+        } else if($recurso == 'jugadoronline'){
+            $vista->imprimir(jugadorOnline::post($peticion));
         } else {
             $vista->imprimir(logro::post($peticion));
         }
@@ -79,6 +90,10 @@ switch ($metodo) {
         // Procesar método delete
         if($recurso == 'partida') {
             $vista->imprimir(partida::delete($peticion));
+        } else if($recurso == 'jugadoronline') {
+            $vista->imprimir(jugadorOnline::delete($peticion));
+        } else if($recurso == 'partidaonline') {
+            $vista->imprimir(partidaOnline::delete($peticion));
         }
         break;
 

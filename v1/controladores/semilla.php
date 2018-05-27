@@ -40,12 +40,12 @@ class semilla
         }
     }
 
-    // En nuestro sistema. la semilla con id 3 es la semilla vacia.
+    // En nuestro sistema. la semilla con id 0 es la semilla vacia.
     private function obtenerSemillas($idSemilla = NULL) {
         try {
             if (!$idSemilla) {
                 $comando = "SELECT * FROM " . self::NOMBRE_TABLA .
-                            " WHERE " .self::ID_SEMILLA ." != 3";
+                            " WHERE " .self::ID_SEMILLA ." != 0";
 
                 // Preparar sentencia
                 $sentencia = ConexionBD::obtenerInstancia()->obtenerBD()->prepare($comando);
