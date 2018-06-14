@@ -19,10 +19,12 @@ class jugadorOnline
     const IS_ANFITRION = "isAnfitrion";	// Boolean, para saber si es anfitrion, interesante por si sale de la partida.
     const ESTADO = "estado";	// Entera, para conocer el estado de un jugador
     
-    // Estados de un jugador    
-    const ESPERANDO = 1;
-    const INTRODUCIENDO_DATOS = 2;
+    // Estados de un jugador
     const SIN_ESTADO = 0;
+    const PREPARADO = 1;
+    const EN_ESPERA = 2;
+    const INTRODUCIENDO_DATOS = 3;
+
     
     const ESTADO_CREACION_EXITOSA = 1;
     const ESTADO_CONEXION_ACTUALIZADA = 1;

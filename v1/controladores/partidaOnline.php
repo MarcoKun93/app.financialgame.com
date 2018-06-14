@@ -30,8 +30,9 @@ class partidaOnline {
 
     // Estados de una partida
     const SIN_ESTADO = 0;
-    const INICIALIZADA = 1;
-    const INICIADA = 2;
+    const EN_PROCESO = 1;
+    const EN_ESPERA = 2;
+    const FINALIZADA = 3;
 
 
 	 // La relación PartidaOnline-JugadorOnline será creada en otra tabla, que me relaciona ids
